@@ -34,8 +34,8 @@ render_sidebar_footer()
 
 render_page_header(
     title="Customer Support Intelligence",
-    subtitle="Machine-learning powered intent classification and ticket routing for the BANKING77 benchmark dataset. Real-time CPU inference calibrated at ≤18ms.",
-    tag="PRODUCTION CLUSTER US-EAST-1 · BANKING ML ENGINE V1.0",
+    subtitle="Machine-learning powered intent classification and ticket routing for the BANKING77 benchmark dataset, using CPU-based sparse TF-IDF models.",
+    tag="BANKING77 · CPU CLASSIFICATION PIPELINE V1.0",
 )
 
 # Load real evaluation outputs
@@ -136,9 +136,9 @@ st.markdown(
 m_col1, m_col2, m_col3, m_col4, m_col5 = st.columns(5)
 m_col1.metric("Test Accuracy", f"{best_acc:.2%}", delta="+3.22% vs baseline")
 m_col2.metric("Macro F1", f"{best_f1:.2%}", delta="Balanced across 77 classes")
-m_col3.metric("Top-5 Accuracy", f"{best_top5:.2%}", delta="Ensemble candidate")
+m_col3.metric("Top-5 Accuracy", f"{best_top5:.2%}", delta="Best intent in top five")
 m_col4.metric("Routing Accuracy", f"{routing_acc:.2%}", delta="10 departments")
-m_col5.metric("Avg Latency", "14.2 ms", delta="CPU sublinear TF-IDF")
+m_col5.metric("Inference", "CPU", delta="Sparse TF-IDF")
 
 st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 

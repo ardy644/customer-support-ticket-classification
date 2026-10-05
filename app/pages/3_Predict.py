@@ -25,6 +25,14 @@ from app.components.stitch_theme import (
 from src.config import MODELS_DIR
 from src.routing import TicketRouter, get_department
 
+
+def _safe_csv_text(value):
+    """Neutralize spreadsheet formulas in user-provided text before CSV export."""
+    text = "" if pd.isna(value) else str(value)
+    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text
+    return text
+
 st.set_page_config(
     page_title="SupportIQ - Live Ticket Classifier",
     page_icon="🔮",
@@ -108,16 +116,21 @@ with tab_single:
             st.session_state.ticket_input_text = PRESETS["Card charged twice"]
 
         if selected_scenario_text:
-            st.session_state.ticket_input_text = selected_scenario_text
+            st.session_state.active_ticket_box = selected_scenario_text
 
-        ticket_text = st.text_area(
-            "Customer Query Utterance:",
-            value=st.session_state.ticket_input_text,
-            height=130,
-            placeholder="Type customer message or select a validation scenario above...",
-            key="active_ticket_box",
-        )
-        st.session_state.ticket_input_text = ticket_text
+        if "active_ticket_box" not in st.session_state:
+            st.session_state.active_ticket_box = st.session_state.ticket_input_text
+
+        with st.form("single_ticket_form"):
+            ticket_text = st.text_area(
+                "Customer Query Utterance:",
+                height=130,
+                placeholder="Type customer message or select a validation scenario above...",
+                key="active_ticket_box",
+            )
+            classify_clicked = st.form_submit_button(
+                "⚡ Classify Ticket", type="primary", use_container_width=True
+            )
 
         char_count = len(ticket_text)
         st.markdown(
@@ -125,112 +138,108 @@ with tab_single:
             unsafe_allow_html=True,
         )
 
-        btn_col, latency_col = st.columns([1, 1])
-        with btn_col:
-            classify_clicked = st.button("⚡ Classify Ticket", type="primary", use_container_width=True)
+        if st.session_state.get("last_inference_ms") is not None:
+            st.caption(f"Last measured inference: {st.session_state.last_inference_ms:.1f} ms · CPU")
 
-        with latency_col:
+    with right_col:
+        if classify_clicked:
+            query_to_process = ticket_text.strip()
+            if query_to_process:
+                with st.spinner("Classifying ticket..."):
+                    t0 = time.perf_counter()
+                    st.session_state.last_ticket_result = router.route(query_to_process)
+                    st.session_state.last_inference_ms = (time.perf_counter() - t0) * 1000
+            else:
+                st.session_state.last_ticket_result = None
+
+        result = st.session_state.get("last_ticket_result")
+        if result is None:
+            st.info("Enter a customer message and select **Classify Ticket** to see its intent and routing recommendation.")
+        else:
+
+            conf = result['confidence']
+            intent = result['predicted_intent']
+            dept = result['department']
+            priority = result['priority']
+
+            # Determine Stitch confidence banner
+            if conf >= 0.70:
+                banner_class = "banner-high"
+                banner_text = "High Confidence — Automatic Routing Recommended"
+                banner_badge = "AUTO-APPROVED"
+                banner_badge_bg = "#004a32"
+            elif conf >= 0.40:
+                banner_class = "banner-medium"
+                banner_text = "Medium Confidence — Human Review Recommended"
+                banner_badge = "NEEDS REVIEW"
+                banner_badge_bg = "#d97706"
+            else:
+                banner_class = "banner-low"
+                banner_text = "Low Confidence — Escalate to Senior Agent"
+                banner_badge = "ESCALATED"
+                banner_badge_bg = "#ba1a1a"
+
+            # Priority badge class
+            p_badge_type = "rose" if priority == "URGENT" else ("amber" if priority == "HIGH" else "emerald")
+
             st.markdown(
-                """
-                <div style="display: flex; align-items: center; justify-content: center; height: 38px; background: #eff4ff; border-radius: 8px; font-size: 12px; color: #1e3a8a; font-weight: 600;">
-                    <span style="width: 7px; height: 7px; border-radius: 9999px; background: #059669; display: inline-block; margin-right: 6px;"></span>
-                    Latency: ~14.2ms · CPU Mode
+                f"""
+                <div class="stitch-result-card">
+                    <!-- Status Banner -->
+                    <div class="stitch-banner {banner_class}">
+                        <span style="font-weight: 600; font-size: 13px;">{banner_text}</span>
+                        <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: {banner_badge_bg}; color: white;">
+                            {banner_badge}
+                        </span>
+                    </div>
+
+                    <!-- Primary Classification Result -->
+                    <div style="background: #f8f9ff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
+                                    PREDICTED INTENT
+                                </div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #00236f;">
+                                    {intent}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
+                                    CONFIDENCE
+                                </div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #059669;">
+                                    {conf:.1%}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; align-items: center; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                            <span style="font-size: 12px; color: #475569;">Target Department: <strong>{dept}</strong></span>
+                            <span style="color: #cbd5e1;">·</span>
+                            <span style="font-size: 12px; color: #475569;">Priority:</span>
+                            <span class="stitch-badge badge-{p_badge_type}">{priority}</span>
+                        </div>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-    with right_col:
-        # Default run or on-click
-        query_to_process = ticket_text.strip() if ticket_text else PRESETS["Card charged twice"]
-        
-        t0 = time.time()
-        result = router.route(query_to_process)
-        inference_ms = round((time.time() - t0) * 1000, 1)
+            st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+            st.subheader("Top 5 Candidate Projections")
 
-        conf = result['confidence']
-        intent = result['predicted_intent']
-        dept = result['department']
-        priority = result['priority']
+            top_preds = result.get('top_predictions', [])
+            for p in top_preds:
+                p_dept = get_department(p['intent'])
+                render_confidence_bar(
+                    intent=p['intent'],
+                    confidence=p['confidence'],
+                    department=p_dept,
+                )
 
-        # Determine Stitch confidence banner
-        if conf >= 0.70:
-            banner_class = "banner-high"
-            banner_text = "High Confidence — Automatic Routing Recommended"
-            banner_badge = "AUTO-APPROVED"
-            banner_badge_bg = "#004a32"
-        elif conf >= 0.40:
-            banner_class = "banner-medium"
-            banner_text = "Medium Confidence — Human Review Recommended"
-            banner_badge = "NEEDS REVIEW"
-            banner_badge_bg = "#d97706"
-        else:
-            banner_class = "banner-low"
-            banner_text = "Low Confidence — Escalate to Senior Agent"
-            banner_badge = "ESCALATED"
-            banner_badge_bg = "#ba1a1a"
-
-        # Priority badge class
-        p_badge_type = "rose" if priority == "URGENT" else ("amber" if priority == "HIGH" else "emerald")
-
-        st.markdown(
-            f"""
-            <div class="stitch-result-card">
-                <!-- Status Banner -->
-                <div class="stitch-banner {banner_class}">
-                    <span style="font-weight: 600; font-size: 13px;">{banner_text}</span>
-                    <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: {banner_badge_bg}; color: white;">
-                        {banner_badge}
-                    </span>
-                </div>
-                
-                <!-- Primary Classification Result -->
-                <div style="background: #f8f9ff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <div>
-                            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
-                                PREDICTED INTENT
-                            </div>
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #00236f;">
-                                {intent}
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
-                                CONFIDENCE
-                            </div>
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #059669;">
-                                {conf:.1%}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; align-items: center; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                        <span style="font-size: 12px; color: #475569;">Target Department: <strong>{dept}</strong></span>
-                        <span style="color: #cbd5e1;">·</span>
-                        <span style="font-size: 12px; color: #475569;">Priority:</span>
-                        <span class="stitch-badge badge-{p_badge_type}">{priority}</span>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-        st.subheader("Top 5 Candidate Projections")
-
-        top_preds = result.get('top_predictions', [])
-        for p in top_preds:
-            p_dept = get_department(p['intent'])
-            render_confidence_bar(
-                intent=p['intent'],
-                confidence=p['confidence'],
-                department=p_dept,
-            )
-
-        with st.expander("🔍 Normalized NLP Feature Token Sequence"):
-            st.code(result.get('preprocessed_text', ''), language='text')
+            with st.expander("🔍 Normalized NLP Feature Token Sequence"):
+                st.code(result.get('preprocessed_text', ''), language='text')
 
 # --- TAB 2: Batch CSV Classification ---
 with tab_batch:
@@ -253,6 +262,8 @@ with tab_batch:
         if 'text' not in batch_df.columns:
             st.error("Uploaded CSV must contain a 'text' column header.")
         else:
+            # Keep missing and non-string CSV cells predictable for inference and export.
+            batch_df['text'] = batch_df['text'].fillna('').astype(str)
             st.info(f"Loaded CSV batch containing **{len(batch_df):,}** ticket queries.")
             if st.button("🚀 Process Batch Inference", type="primary"):
                 with st.spinner(f"Classifying {len(batch_df)} queries..."):
@@ -262,7 +273,7 @@ with tab_batch:
 
                 results_df = pd.DataFrame([
                     {
-                        'Customer Text': r['input_text'][:70] + ('...' if len(r['input_text']) > 70 else ''),
+                        'Customer Text': _safe_csv_text(r['input_text'][:70] + ('...' if len(r['input_text']) > 70 else '')),
                         'Predicted Intent': r['predicted_intent'],
                         'Department': r['department'],
                         'Confidence': f"{r['confidence']:.2%}",
