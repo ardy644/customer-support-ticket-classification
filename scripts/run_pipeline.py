@@ -45,7 +45,7 @@ def main():
     print(f"  Train: {len(X_train_text)} samples")
     print(f"  Test:  {len(X_test_text)} samples")
     print(f"  Categories: {y_train.nunique()}")
-    print("  Data leakage check: PASSED \u2713")
+    print("  Data leakage check: PASSED [OK]")
     
     # ===== Phase 2: EDA =====
     if not args.skip_eda:
@@ -131,7 +131,7 @@ def main():
     # ===== Phase 9: Routing Analysis =====
     print_separator("PHASE 9: Routing Analysis")
     assert validate_routing_map(), "Routing map validation failed!"
-    print("  Routing map validated: 77 intents, no duplicates \u2713")
+    print("  Routing map validated: 77 intents, no duplicates [OK]")
     
     y_pred = best_model.predict(X_test_tfidf)
     routing_stats = get_routing_stats(y_test, y_pred)

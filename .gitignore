@@ -32,6 +32,7 @@ models/*.joblib
 !models/.gitkeep
 outputs/**/*.png
 outputs/**/*.json
+outputs/**/*.txt
 !outputs/.gitkeep
 !outputs/eda/.gitkeep
 
