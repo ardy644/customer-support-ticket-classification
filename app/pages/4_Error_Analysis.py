@@ -23,6 +23,7 @@ from app.components.stitch_theme import (
     render_sidebar_footer,
     render_page_header,
     render_kpi_card,
+    style_plot_axes,
 )
 from src.config import OUTPUTS_DIR
 
@@ -117,7 +118,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 # Top Confused Intent Pairs Section
 st.subheader("High-Friction Category Pairs (Top Confused Intents)")
 st.markdown(
-    "<span style='color: #64748b; font-size: 13px;'>Pairs where the model most frequently confuses closely related semantic intents (e.g. identity verification nuances or pending transactions).</span>",
+    "<span style='color: var(--stitch-muted); font-size: 13px;'>Pairs where the model most frequently confuses closely related semantic intents (e.g. identity verification nuances or pending transactions).</span>",
     unsafe_allow_html=True,
 )
 
@@ -130,19 +131,18 @@ if confused_list:
     with col_chart:
         top_12 = confused_df.head(12)
         fig, ax = plt.subplots(figsize=(8, 6.5))
-        fig.patch.set_facecolor('#ffffff')
-        ax.set_facecolor('#ffffff')
+        plot_colors = style_plot_axes(fig, ax)
 
         labels = [f"{r['Ground Truth Intent']}\n→ {r['Predicted Mistake']}" for _, r in top_12.iterrows()]
         y_pos = range(len(labels))
 
-        ax.barh(y_pos, top_12['Error Count'].values, color='#e11d48', alpha=0.85, edgecolor='#ffffff')
+        ax.barh(y_pos, top_12['Error Count'].values, color=plot_colors['danger'], alpha=0.9, edgecolor=plot_colors['surface'])
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(labels, fontsize=9, color='#0b1c30')
+        ax.set_yticklabels(labels, fontsize=9, color=plot_colors['text'])
         ax.invert_yaxis()
-        ax.set_xlabel('Misclassification Count (Holdout Test Set)', fontsize=10, fontweight='bold', color='#0b1c30')
-        ax.set_title('Top 12 Mutual Confusion Pairs', fontsize=12, fontweight='bold', color='#00236f')
-        ax.grid(axis='x', linestyle='--', alpha=0.3, color='#94a3b8')
+        ax.set_xlabel('Misclassification Count (Holdout Test Set)', fontsize=10, fontweight='bold', color=plot_colors['text'])
+        ax.set_title('Top 12 Mutual Confusion Pairs', fontsize=12, fontweight='bold', color=plot_colors['heading'])
+        ax.grid(axis='x', linestyle='--', alpha=0.3, color=plot_colors['grid'])
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         plt.tight_layout()
@@ -157,7 +157,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 # Worst Categories Table
 st.subheader("Lowest-Performing Categories by F1 Score")
 st.markdown(
-    "<span style='color: #64748b; font-size: 13px;'>Categories with the highest error density, typically caused by fine-grained linguistic boundary overlap in banking terms.</span>",
+    "<span style='color: var(--stitch-muted); font-size: 13px;'>Categories with the highest error density, typically caused by fine-grained linguistic boundary overlap in banking terms.</span>",
     unsafe_allow_html=True,
 )
 

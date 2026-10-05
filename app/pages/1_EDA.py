@@ -23,6 +23,7 @@ from app.components.stitch_theme import (
     render_sidebar_footer,
     render_page_header,
     render_kpi_card,
+    style_plot_axes,
 )
 from src.config import TRAIN_PATH, LABEL_COL, TEXT_COL
 
@@ -109,7 +110,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 # Category Distribution Section
 st.subheader("Category Distribution (Training Set)")
 st.markdown(
-    "<span style='color: #64748b; font-size: 13px;'>Training split contains intentional natural imbalance (35 to 187 samples), while test set is perfectly balanced (40 samples per category).</span>",
+    "<span style='color: var(--stitch-muted); font-size: 13px;'>Training split contains intentional natural imbalance (35 to 187 samples), while test set is perfectly balanced (40 samples per category).</span>",
     unsafe_allow_html=True,
 )
 
@@ -117,21 +118,18 @@ tab_chart, tab_table = st.tabs(["📊 Distribution Bar Chart", "📋 Data Table 
 
 with tab_chart:
     fig, ax = plt.subplots(figsize=(12, 16))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#ffffff')
+    plot_colors = style_plot_axes(fig, ax)
     
     # Clean Stitch Navy to Cobalt gradient
-    palette = sns.color_palette("mako", len(vc))
+    palette = sns.blend_palette([plot_colors["primary"], plot_colors["secondary"]], n_colors=len(vc))
     vc.plot(kind='barh', ax=ax, color=palette)
     
-    ax.set_xlabel('Number of Samples', fontsize=12, fontweight='bold', color='#0b1c30')
-    ax.set_title('BANKING77 Training Set Intent Frequency (77 Classes)', fontsize=14, fontweight='bold', color='#00236f', pad=15)
+    ax.set_xlabel('Number of Samples', fontsize=12, fontweight='bold', color=plot_colors['text'])
+    ax.set_title('BANKING77 Training Set Intent Frequency (77 Classes)', fontsize=14, fontweight='bold', color=plot_colors['heading'], pad=15)
     ax.invert_yaxis()
-    ax.grid(axis='x', linestyle='--', alpha=0.3, color='#94a3b8')
+    ax.grid(axis='x', linestyle='--', alpha=0.3, color=plot_colors['grid'])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_color('#cbd5e1')
-    ax.spines['bottom'].set_color('#cbd5e1')
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
@@ -156,16 +154,15 @@ c_len1, c_len2 = st.columns(2)
 
 with c_len1:
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#ffffff')
-    char_lengths.hist(bins=40, ax=ax, color='#1e3a8a', edgecolor='#ffffff', alpha=0.85)
-    ax.axvline(char_lengths.mean(), color='#e11d48', linestyle='--', linewidth=2, label=f'Mean: {char_lengths.mean():.1f}')
-    ax.axvline(char_lengths.median(), color='#d97706', linestyle=':', linewidth=2, label=f'Median: {char_lengths.median():.0f}')
-    ax.set_xlabel('Character Length', fontsize=10, fontweight='bold', color='#0b1c30')
-    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color='#0b1c30')
-    ax.set_title('Character Length Distribution', fontsize=12, fontweight='bold', color='#00236f')
-    ax.grid(axis='y', linestyle='--', alpha=0.3, color='#94a3b8')
-    ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0')
+    plot_colors = style_plot_axes(fig, ax)
+    char_lengths.hist(bins=40, ax=ax, color=plot_colors['primary'], edgecolor=plot_colors['surface'], alpha=0.9)
+    ax.axvline(char_lengths.mean(), color=plot_colors['danger'], linestyle='--', linewidth=2, label=f'Mean: {char_lengths.mean():.1f}')
+    ax.axvline(char_lengths.median(), color=plot_colors['warning'], linestyle=':', linewidth=2, label=f'Median: {char_lengths.median():.0f}')
+    ax.set_xlabel('Character Length', fontsize=10, fontweight='bold', color=plot_colors['text'])
+    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color=plot_colors['text'])
+    ax.set_title('Character Length Distribution', fontsize=12, fontweight='bold', color=plot_colors['heading'])
+    ax.grid(axis='y', linestyle='--', alpha=0.3, color=plot_colors['grid'])
+    ax.legend(frameon=True, facecolor=plot_colors['surface'], edgecolor=plot_colors['border'], labelcolor=plot_colors['text'])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
@@ -174,16 +171,15 @@ with c_len1:
 
 with c_len2:
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#ffffff')
-    word_counts.hist(bins=30, ax=ax, color='#2563eb', edgecolor='#ffffff', alpha=0.85)
-    ax.axvline(word_counts.mean(), color='#e11d48', linestyle='--', linewidth=2, label=f'Mean: {word_counts.mean():.1f}')
-    ax.axvline(word_counts.median(), color='#d97706', linestyle=':', linewidth=2, label=f'Median: {word_counts.median():.0f}')
-    ax.set_xlabel('Word Count', fontsize=10, fontweight='bold', color='#0b1c30')
-    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color='#0b1c30')
-    ax.set_title('Word Count Distribution', fontsize=12, fontweight='bold', color='#00236f')
-    ax.grid(axis='y', linestyle='--', alpha=0.3, color='#94a3b8')
-    ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0')
+    plot_colors = style_plot_axes(fig, ax)
+    word_counts.hist(bins=30, ax=ax, color=plot_colors['secondary'], edgecolor=plot_colors['surface'], alpha=0.9)
+    ax.axvline(word_counts.mean(), color=plot_colors['danger'], linestyle='--', linewidth=2, label=f'Mean: {word_counts.mean():.1f}')
+    ax.axvline(word_counts.median(), color=plot_colors['warning'], linestyle=':', linewidth=2, label=f'Median: {word_counts.median():.0f}')
+    ax.set_xlabel('Word Count', fontsize=10, fontweight='bold', color=plot_colors['text'])
+    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color=plot_colors['text'])
+    ax.set_title('Word Count Distribution', fontsize=12, fontweight='bold', color=plot_colors['heading'])
+    ax.grid(axis='y', linestyle='--', alpha=0.3, color=plot_colors['grid'])
+    ax.legend(frameon=True, facecolor=plot_colors['surface'], edgecolor=plot_colors['border'], labelcolor=plot_colors['text'])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
@@ -194,7 +190,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 # Sample Browser Section
 st.subheader("Intent Utterance Browser")
-st.markdown("<span style='color: #64748b; font-size: 13px;'>Inspect authentic training examples across any of the 77 banking categories.</span>", unsafe_allow_html=True)
+st.markdown("<span style='color: var(--stitch-muted); font-size: 13px;'>Inspect authentic training examples across any of the 77 banking categories.</span>", unsafe_allow_html=True)
 
 selected_cat = st.selectbox("Select Intent Category:", sorted(train_df[LABEL_COL].unique()))
 cat_samples = train_df[train_df[LABEL_COL] == selected_cat][TEXT_COL].tolist()
@@ -206,9 +202,9 @@ for idx, text in enumerate(cat_samples[:6]):
     with col:
         st.markdown(
             f"""
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
-                <div style="font-size: 13px; color: #0b1c30; line-height: 1.4;">"{text}"</div>
-                <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #2563eb; font-weight: 600;">Sample #{idx+1}</div>
+            <div style="background: var(--stitch-surface); border: 1px solid var(--stitch-border); border-radius: 8px; padding: 14px; margin-bottom: 12px; height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-size: 13px; color: var(--stitch-text); line-height: 1.4;">"{text}"</div>
+                <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--stitch-info); font-weight: 600;">Sample #{idx+1}</div>
             </div>
             """,
             unsafe_allow_html=True,

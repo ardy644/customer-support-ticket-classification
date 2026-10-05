@@ -23,6 +23,7 @@ from app.components.stitch_theme import (
     render_sidebar_footer,
     render_page_header,
     render_kpi_card,
+    style_plot_axes,
 )
 from src.config import OUTPUTS_DIR
 from src.routing import ROUTING_MAP, get_priority
@@ -117,7 +118,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 # Department Performance & Workload Telemetry
 st.subheader("Department Dispatch & Accuracy Matrix")
-st.markdown("<span style='color: #64748b; font-size: 13px;'>Actual routing telemetry computed by evaluating the production classifier against the 3,080 holdout test tickets.</span>", unsafe_allow_html=True)
+st.markdown("<span style='color: var(--stitch-muted); font-size: 13px;'>Actual routing telemetry computed by evaluating the production classifier against the 3,080 holdout test tickets.</span>", unsafe_allow_html=True)
 
 table_col, chart_col = st.columns([7, 5], gap="large")
 
@@ -150,21 +151,20 @@ with table_col:
 
 with chart_col:
     fig, ax = plt.subplots(figsize=(7, 5))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#ffffff')
+    plot_colors = style_plot_axes(fig, ax)
 
     d_names = dept_df['Department'].tolist()
     d_accs = dept_df['_raw_acc'].tolist()
 
     y_pos = range(len(d_names))
-    ax.barh(y_pos, d_accs, color='#1e3a8a', alpha=0.9, edgecolor='#ffffff')
+    ax.barh(y_pos, d_accs, color=plot_colors['primary'], alpha=0.9, edgecolor=plot_colors['surface'])
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(d_names, fontsize=9, color='#0b1c30')
+    ax.set_yticklabels(d_names, fontsize=9, color=plot_colors['text'])
     ax.invert_yaxis()
-    ax.set_xlabel('Routing Accuracy (0.0 - 1.0)', fontsize=10, fontweight='bold', color='#0b1c30')
+    ax.set_xlabel('Routing Accuracy (0.0 - 1.0)', fontsize=10, fontweight='bold', color=plot_colors['text'])
     ax.set_xlim(0.85, 1.02)
-    ax.set_title('Routing Accuracy by Support Queue', fontsize=12, fontweight='bold', color='#00236f')
-    ax.grid(axis='x', linestyle='--', alpha=0.3, color='#94a3b8')
+    ax.set_title('Routing Accuracy by Support Queue', fontsize=12, fontweight='bold', color=plot_colors['heading'])
+    ax.grid(axis='x', linestyle='--', alpha=0.3, color=plot_colors['grid'])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
@@ -175,7 +175,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 # Queue Directory & Dispatch Policy Inspector
 st.subheader("Department Queue & Intent Directory")
-st.markdown("<span style='color: #64748b; font-size: 13px;'>Explore the deterministic mapping of fine-grained customer intents to operational support departments along with priority rules.</span>", unsafe_allow_html=True)
+st.markdown("<span style='color: var(--stitch-muted); font-size: 13px;'>Explore the deterministic mapping of fine-grained customer intents to operational support departments along with priority rules.</span>", unsafe_allow_html=True)
 
 selected_dept = st.selectbox("Select Department Queue:", list(ROUTING_MAP.keys()))
 handled_intents = sorted(ROUTING_MAP[selected_dept])
@@ -197,10 +197,10 @@ with col_dir2:
     st.markdown(
         """
         <div class="stitch-kpi-card" style="height: 100%;">
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 700; color: #00236f; margin-bottom: 8px;">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 8px;">
                 Routing Policy & Escalation Rules
             </div>
-            <div style="font-size: 12px; color: #444651; line-height: 1.6;">
+            <div style="font-size: 12px; color: var(--stitch-secondary); line-height: 1.6;">
                 <p style="margin: 0 0 6px 0;"><strong>URGENT:</strong> Direct security compromise (compromised cards, lost devices, blocked PINs) with high confidence triggers immediate priority queues.</p>
                 <p style="margin: 0 0 6px 0;"><strong>HIGH:</strong> Transaction and payment friction (double billing, declined transfers) flagged for prioritized handling.</p>
                 <p style="margin: 0 0 6px 0;"><strong>MEDIUM:</strong> Hardware or contactless glitches, plus any classification with confidence &lt; 0.30 routed to human-in-the-loop review.</p>

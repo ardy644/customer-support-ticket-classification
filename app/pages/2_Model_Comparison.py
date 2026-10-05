@@ -24,6 +24,7 @@ from app.components.stitch_theme import (
     render_sidebar_footer,
     render_page_header,
     render_kpi_card,
+    style_plot_axes,
 )
 from src.config import OUTPUTS_DIR
 
@@ -116,7 +117,7 @@ for item in models_meta:
                     </div>
                     <div class="stitch-kpi-value">{acc:.2%}</div>
                 </div>
-                <div style="margin: 8px 0; font-size: 12px; color: #444651;">
+                <div style="margin: 8px 0; font-size: 12px; color: var(--stitch-secondary);">
                     <span style="font-weight: 600;">Macro F1:</span> {f1:.2%} &nbsp;|&nbsp; 
                     <span style="font-weight: 600;">Top-5:</span> {top5:.2%}
                 </div>
@@ -132,7 +133,7 @@ st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
 # Comparative Benchmark Table
 st.subheader("Official Held-Out Test Evaluation (3,080 Samples)")
-st.markdown("<span style='color: #64748b; font-size: 13px;'>Actual holdout evaluation metrics computed on the balanced test set (40 samples per category across all 77 classes).</span>", unsafe_allow_html=True)
+st.markdown("<span style='color: var(--stitch-muted); font-size: 13px;'>Actual holdout evaluation metrics computed on the balanced test set (40 samples per category across all 77 classes).</span>", unsafe_allow_html=True)
 
 rows = []
 for name, m in eval_results.items():
@@ -171,24 +172,23 @@ with chart_col1:
     model_list = list(eval_results.keys())
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#ffffff')
+    plot_colors = style_plot_axes(fig, ax)
 
     x = np.arange(len(metric_labels))
     width = 0.25
 
-    colors = ['#00236f', '#2563eb', '#94a3b8']
+    colors = [plot_colors['primary'], plot_colors['secondary'], plot_colors['tertiary']]
     for idx, m_name in enumerate(model_list):
         vals = [eval_results[m_name].get(k, 0.0) for k in metric_keys]
-        ax.bar(x + idx * width, vals, width, label=m_name, color=colors[idx % len(colors)], alpha=0.9, edgecolor='#ffffff')
+        ax.bar(x + idx * width, vals, width, label=m_name, color=colors[idx % len(colors)], alpha=0.9, edgecolor=plot_colors['surface'])
 
-    ax.set_ylabel('Score (0.0 - 1.0)', fontsize=11, fontweight='bold', color='#0b1c30')
-    ax.set_title('Test Set Multi-Metric Benchmark', fontsize=13, fontweight='bold', color='#00236f', pad=12)
+    ax.set_ylabel('Score (0.0 - 1.0)', fontsize=11, fontweight='bold', color=plot_colors['text'])
+    ax.set_title('Test Set Multi-Metric Benchmark', fontsize=13, fontweight='bold', color=plot_colors['heading'], pad=12)
     ax.set_xticks(x + width)
-    ax.set_xticklabels(metric_labels, fontsize=10, fontweight='600')
+    ax.set_xticklabels(metric_labels, fontsize=10, fontweight='600', color=plot_colors['muted'])
     ax.set_ylim(0.75, 1.02)
-    ax.grid(axis='y', linestyle='--', alpha=0.3, color='#94a3b8')
-    ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0', loc='lower right')
+    ax.grid(axis='y', linestyle='--', alpha=0.3, color=plot_colors['grid'])
+    ax.legend(frameon=True, facecolor=plot_colors['surface'], edgecolor=plot_colors['border'], labelcolor=plot_colors['text'], loc='lower right')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
@@ -199,13 +199,13 @@ with chart_col2:
     st.markdown(
         """
         <div class="stitch-kpi-card" style="height: 100%;">
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: #00236f; margin-bottom: 10px;">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 10px;">
                 Hyperparameter Tuning Findings
             </div>
-            <div style="font-size: 13px; color: #444651; line-height: 1.6; margin-bottom: 12px;">
+            <div style="font-size: 13px; color: var(--stitch-secondary); line-height: 1.6; margin-bottom: 12px;">
                 Grid search optimization over 5 stratified folds demonstrated strong linear separability in the TF-IDF feature space:
             </div>
-            <ul style="font-size: 12px; color: #444651; line-height: 1.6; padding-left: 18px; margin: 0;">
+            <ul style="font-size: 12px; color: var(--stitch-secondary); line-height: 1.6; padding-left: 18px; margin: 0;">
                 <li><strong>Logistic Regression</strong> reached optimal test generalization at <code>C=5.0</code> with SAGA solver, outperforming base parameters by <strong>+3.05%</strong>.</li>
                 <li><strong>Linear SVM</strong> converged best at <code>C=0.5</code> with squared hinge loss, exhibiting tight decision margins with <strong>86.82%</strong> accuracy.</li>
                 <li><strong>Multinomial NB</strong> improved significantly from default (81.2%) to <strong>83.96%</strong> with aggressive Laplacian smoothing reduction (<code>alpha=0.05</code>).</li>

@@ -149,29 +149,29 @@ with left_col:
     st.markdown(
         """
         <div class="stitch-kpi-card">
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #00236f; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
                 <span>System Pipeline & Model Architecture</span>
                 <span class="stitch-badge badge-blue">Traditional ML Only</span>
             </div>
-            <p style="font-size: 13px; color: #444651; line-height: 1.6; margin-bottom: 16px;">
+            <p style="font-size: 13px; color: var(--stitch-secondary); line-height: 1.6; margin-bottom: 16px;">
                 The SupportIQ engine is optimized for high-throughput, low-latency enterprise environments without external neural network dependencies. It maps natural language support tickets directly into banking operations queues.
             </p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
-                <div style="background: #f8f9ff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-weight: 600; color: #00236f; margin-bottom: 4px;">1. Text Normalization</div>
-                    <div style="color: #64748b;">Negation-preserving lemmatization, non-alpha removal, token cleansing.</div>
+                <div style="background: var(--stitch-inset); padding: 12px; border-radius: 8px; border: 1px solid var(--stitch-border);">
+                    <div style="font-weight: 600; color: var(--stitch-heading); margin-bottom: 4px;">1. Text Normalization</div>
+                    <div style="color: var(--stitch-muted);">Negation-preserving lemmatization, non-alpha removal, token cleansing.</div>
                 </div>
-                <div style="background: #f8f9ff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-weight: 600; color: #00236f; margin-bottom: 4px;">2. TF-IDF Representation</div>
-                    <div style="color: #64748b;">Sublinear TF, (1, 2) n-grams, 15k feature cap, float32 sparse matrix.</div>
+                <div style="background: var(--stitch-inset); padding: 12px; border-radius: 8px; border: 1px solid var(--stitch-border);">
+                    <div style="font-weight: 600; color: var(--stitch-heading); margin-bottom: 4px;">2. TF-IDF Representation</div>
+                    <div style="color: var(--stitch-muted);">Sublinear TF, (1, 2) n-grams, 15k feature cap, float32 sparse matrix.</div>
                 </div>
-                <div style="background: #f8f9ff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-weight: 600; color: #00236f; margin-bottom: 4px;">3. Classifier Tiers</div>
-                    <div style="color: #64748b;">Logistic Regression (C=5.0), Linear SVM (C=0.5), MultinomialNB.</div>
+                <div style="background: var(--stitch-inset); padding: 12px; border-radius: 8px; border: 1px solid var(--stitch-border);">
+                    <div style="font-weight: 600; color: var(--stitch-heading); margin-bottom: 4px;">3. Classifier Tiers</div>
+                    <div style="color: var(--stitch-muted);">Logistic Regression (C=5.0), Linear SVM (C=0.5), MultinomialNB.</div>
                 </div>
-                <div style="background: #f8f9ff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-weight: 600; color: #00236f; margin-bottom: 4px;">4. Intelligent Routing</div>
-                    <div style="color: #64748b;">Deterministic intent-to-department resolution with dynamic priority logic.</div>
+                <div style="background: var(--stitch-inset); padding: 12px; border-radius: 8px; border: 1px solid var(--stitch-border);">
+                    <div style="font-weight: 600; color: var(--stitch-heading); margin-bottom: 4px;">4. Intelligent Routing</div>
+                    <div style="color: var(--stitch-muted);">Deterministic intent-to-department resolution with dynamic priority logic.</div>
                 </div>
             </div>
         </div>
@@ -183,35 +183,35 @@ with right_col:
     st.markdown(
         """
         <div class="stitch-kpi-card">
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #00236f; margin-bottom: 12px;">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 12px;">
                 Operational Workflows
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="padding: 10px 14px; background: #eff4ff; border-radius: 8px; border: 1px solid #dce9ff; display: flex; align-items: center; justify-content: space-between;">
+                <div style="padding: 10px 14px; background: var(--stitch-inset); border-radius: 8px; border: 1px solid var(--stitch-border); display: flex; align-items: center; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00236f;">Live Ticket Classifier</div>
-                        <div style="font-size: 11px; color: #64748b;">Real-time query inference & batch CSV processing</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--stitch-heading);">Live Ticket Classifier</div>
+                        <div style="font-size: 11px; color: var(--stitch-muted);">Real-time query inference & batch CSV processing</div>
                     </div>
                     <span class="stitch-badge badge-blue">Page 3</span>
                 </div>
-                <div style="padding: 10px 14px; background: #f8f9ff; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="padding: 10px 14px; background: var(--stitch-inset); border-radius: 8px; border: 1px solid var(--stitch-border); display: flex; align-items: center; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00236f;">Dataset Analytics</div>
-                        <div style="font-size: 11px; color: #64748b;">10,003 samples, class distributions & token stats</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--stitch-heading);">Dataset Analytics</div>
+                        <div style="font-size: 11px; color: var(--stitch-muted);">10,003 samples, class distributions & token stats</div>
                     </div>
                     <span class="stitch-badge badge-gray">Page 1</span>
                 </div>
-                <div style="padding: 10px 14px; background: #f8f9ff; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="padding: 10px 14px; background: var(--stitch-inset); border-radius: 8px; border: 1px solid var(--stitch-border); display: flex; align-items: center; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00236f;">Model Performance</div>
-                        <div style="font-size: 11px; color: #64748b;">Leaderboard, CV curves & test metrics table</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--stitch-heading);">Model Performance</div>
+                        <div style="font-size: 11px; color: var(--stitch-muted);">Leaderboard, CV curves & test metrics table</div>
                     </div>
                     <span class="stitch-badge badge-gray">Page 2</span>
                 </div>
-                <div style="padding: 10px 14px; background: #f8f9ff; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="padding: 10px 14px; background: var(--stitch-inset); border-radius: 8px; border: 1px solid var(--stitch-border); display: flex; align-items: center; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 600; font-size: 13px; color: #00236f;">Ticket Routing & Queues</div>
-                        <div style="font-size: 11px; color: #64748b;">Departmental dispatch & severity prioritization</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--stitch-heading);">Ticket Routing & Queues</div>
+                        <div style="font-size: 11px; color: var(--stitch-muted);">Departmental dispatch & severity prioritization</div>
                     </div>
                     <span class="stitch-badge badge-gray">Page 5</span>
                 </div>

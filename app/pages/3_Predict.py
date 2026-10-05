@@ -90,10 +90,10 @@ with tab_single:
     with left_col:
         st.markdown(
             """
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #00236f; margin-bottom: 4px;">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 4px;">
                 Customer Support Ticket Input
             </div>
-            <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+            <div style="font-size: 13px; color: var(--stitch-muted); margin-bottom: 12px;">
                 Simulate incoming omnichannel dialogue. The linear classifier processes sublinear TF-IDF character & word n-grams in real-time.
             </div>
             """,
@@ -101,7 +101,7 @@ with tab_single:
         )
 
         # Quick validation scenario chips
-        st.markdown("<span style='font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.06em;'>Validation Scenarios</span>", unsafe_allow_html=True)
+        st.markdown("<span style='font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--stitch-muted); letter-spacing: 0.06em;'>Validation Scenarios</span>", unsafe_allow_html=True)
         preset_cols = st.columns(3)
         selected_scenario_text = None
         preset_keys = list(PRESETS.keys())
@@ -134,7 +134,7 @@ with tab_single:
 
         char_count = len(ticket_text)
         st.markdown(
-            f"<div style='text-align: right; font-size: 11px; color: #94a3b8; font-family: monospace;'>{char_count} characters</div>",
+            f"<div style='text-align: right; font-size: 11px; color: var(--stitch-muted); font-family: monospace;'>{char_count} characters</div>",
             unsafe_allow_html=True,
         )
 
@@ -172,7 +172,7 @@ with tab_single:
                 banner_class = "banner-medium"
                 banner_text = "Medium Confidence — Human Review Recommended"
                 banner_badge = "NEEDS REVIEW"
-                banner_badge_bg = "#d97706"
+                banner_badge_bg = "#8a4b08"
             else:
                 banner_class = "banner-low"
                 banner_text = "Low Confidence — Escalate to Senior Agent"
@@ -194,30 +194,30 @@ with tab_single:
                     </div>
 
                     <!-- Primary Classification Result -->
-                    <div style="background: #f8f9ff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                    <div style="background: var(--stitch-inset); border: 1px solid var(--stitch-border); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                             <div>
-                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stitch-muted);">
                                     PREDICTED INTENT
                                 </div>
-                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #00236f;">
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--stitch-heading);">
                                     {intent}
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">
+                                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stitch-muted);">
                                     CONFIDENCE
                                 </div>
-                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #059669;">
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--stitch-success);">
                                     {conf:.1%}
                                 </div>
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 10px; align-items: center; padding-top: 10px; border-top: 1px solid #e2e8f0;">
-                            <span style="font-size: 12px; color: #475569;">Target Department: <strong>{dept}</strong></span>
-                            <span style="color: #cbd5e1;">·</span>
-                            <span style="font-size: 12px; color: #475569;">Priority:</span>
+                        <div style="display: flex; gap: 10px; align-items: center; padding-top: 10px; border-top: 1px solid var(--stitch-border);">
+                            <span style="font-size: 12px; color: var(--stitch-secondary);">Target Department: <strong>{dept}</strong></span>
+                            <span style="color: var(--stitch-border);">·</span>
+                            <span style="font-size: 12px; color: var(--stitch-secondary);">Priority:</span>
                             <span class="stitch-badge badge-{p_badge_type}">{priority}</span>
                         </div>
                     </div>
@@ -245,10 +245,10 @@ with tab_single:
 with tab_batch:
     st.markdown(
         """
-        <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: #00236f; margin-bottom: 4px;">
+        <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--stitch-heading); margin-bottom: 4px;">
             High-Throughput Batch Ticket Classifier
         </div>
-        <div style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+        <div style="font-size: 13px; color: var(--stitch-muted); margin-bottom: 16px;">
             Upload any CSV file containing customer messages under a <code>text</code> column to run bulk inference and automated departmental dispatch.
         </div>
         """,
