@@ -1,0 +1,43 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets & config
+.env
+*.key
+*.pem
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Large / generated files
+models/*.joblib
+!models/.gitkeep
+outputs/**/*.png
+outputs/**/*.json
+!outputs/.gitkeep
+!outputs/eda/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Caches
+.cache/
+.gemini/
