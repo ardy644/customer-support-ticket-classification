@@ -15,6 +15,13 @@ def test_main_app_page():
     assert len(at.exception) == 0
 
 
+def test_dataset_analytics_page():
+    """Verify Dataset Analytics page renders without error."""
+    at = AppTest.from_file(str(project_root / "app" / "pages" / "1_EDA.py"))
+    at.run(timeout=30)
+    assert len(at.exception) == 0
+
+
 def test_model_comparison_page():
     """Verify Model Comparison page renders with metrics."""
     at = AppTest.from_file(str(project_root / "app" / "pages" / "2_Model_Comparison.py"))
