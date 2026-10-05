@@ -67,7 +67,7 @@ def test_fit_only_on_train(sample_data):
     """Test that vectorizer vocab is learned only from training data."""
     train = ["alpha beta gamma"]
     test = ["delta epsilon zeta"]  # Completely different words
-    vec = build_tfidf_vectorizer(max_features=100, min_df=1)
+    vec = build_tfidf_vectorizer(max_features=100, min_df=1, max_df=1.0)
     X_train, X_test = fit_transform_tfidf(vec, train, test)
     # Test words not in vocabulary -> all zeros
     assert X_test.sum() == 0.0  # No matching features

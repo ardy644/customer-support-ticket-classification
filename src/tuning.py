@@ -15,7 +15,6 @@ PARAM_GRIDS = {
     },
     'LogisticRegression': {
         'C': [0.1, 0.5, 1.0, 5.0, 10.0],
-        'penalty': ['l2'],
         'solver': ['saga'],
         'max_iter': [1000],
     },
@@ -32,7 +31,7 @@ def _get_base_model(name: str):
     if name == 'MultinomialNB':
         return MultinomialNB()
     elif name == 'LogisticRegression':
-        return LogisticRegression(random_state=RANDOM_STATE, n_jobs=-1, multi_class='multinomial')
+        return LogisticRegression(random_state=RANDOM_STATE)
     elif name == 'LinearSVC':
         return LinearSVC(random_state=RANDOM_STATE, dual='auto')
     else:

@@ -25,9 +25,7 @@ def get_models() -> dict:
         'LogisticRegression': LogisticRegression(
             max_iter=LR_MAX_ITER,
             solver='saga',
-            multi_class='multinomial',
             random_state=RANDOM_STATE,
-            n_jobs=-1,
         ),
         'LinearSVC': LinearSVC(
             max_iter=SVM_MAX_ITER,

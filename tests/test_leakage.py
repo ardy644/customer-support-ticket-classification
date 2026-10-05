@@ -33,7 +33,7 @@ def test_tfidf_fit_only_on_train():
     train_texts = ["alpha bravo charlie"]
     test_texts = ["delta echo foxtrot"]  # Totally different vocabulary
     
-    vec = build_tfidf_vectorizer(max_features=100, min_df=1)
+    vec = build_tfidf_vectorizer(max_features=100, min_df=1, max_df=1.0)
     X_train, X_test = fit_transform_tfidf(vec, train_texts, test_texts)
     
     # Test-only words should not be in vocabulary
