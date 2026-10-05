@@ -1,6 +1,11 @@
-"""EDA Dashboard Page."""
+"""SupportIQ - Dataset Analytics Page.
+
+Visual exploration of BANKING77 corpus telemetry, feature space, and class balance.
+Matches Stitch Dataset Analytics design specification.
+"""
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -11,108 +16,200 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-from collections import Counter
 
-from src.config import TRAIN_PATH, LABEL_COL, TEXT_COL, EDA_DIR
+from app.components.stitch_theme import (
+    apply_stitch_styles,
+    render_sidebar_branding,
+    render_sidebar_footer,
+    render_page_header,
+    render_kpi_card,
+)
+from src.config import TRAIN_PATH, LABEL_COL, TEXT_COL
 
-st.set_page_config(page_title="EDA - BANKING77", page_icon="📊", layout="wide")
-st.title("📊 Exploratory Data Analysis")
-st.markdown("All analysis is performed on the **training set only** to prevent data leakage.")
+st.set_page_config(
+    page_title="SupportIQ - Dataset Analytics",
+    page_icon="📊",
+    layout="wide",
+)
+
+apply_stitch_styles()
+render_sidebar_branding()
+render_sidebar_footer()
+
+render_page_header(
+    title="Dataset Analytics",
+    subtitle="Explore the BANKING77 customer-support dataset structure, class distributions, lexical variance, and routing mappings across production fine-tuning baselines.",
+    tag="CORPUS TELEMETRY & FEATURE SPACE",
+)
+
 
 @st.cache_data
-def load_train_data():
+def load_train_df():
     return pd.read_csv(TRAIN_PATH)
 
-train_df = load_train_data()
 
-# Summary metrics
-st.subheader("Dataset Overview")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Samples", f"{len(train_df):,}")
-col2.metric("Categories", train_df[LABEL_COL].nunique())
-col3.metric("Avg Text Length", f"{train_df[TEXT_COL].str.len().mean():.0f} chars")
-col4.metric("Avg Word Count", f"{train_df[TEXT_COL].str.split().str.len().mean():.1f} words")
-
-st.markdown("---")
-
-# Category distribution
-st.subheader("Category Distribution")
+train_df = load_train_df()
 vc = train_df[LABEL_COL].value_counts()
+char_lengths = train_df[TEXT_COL].str.len()
+word_counts = train_df[TEXT_COL].str.split().str.len()
 
-tab1, tab2 = st.tabs(["Bar Chart", "Data Table"])
-
-with tab1:
-    fig, ax = plt.subplots(figsize=(12, 16))
-    vc.plot(kind='barh', ax=ax, color=sns.color_palette('viridis', len(vc)))
-    ax.set_xlabel('Number of Samples')
-    ax.set_title('Category Distribution (Training Set)')
-    ax.invert_yaxis()
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
-
-with tab2:
-    st.dataframe(
-        pd.DataFrame({'Category': vc.index, 'Count': vc.values, 'Percentage': (vc.values/vc.sum()*100).round(2)}),
-        use_container_width=True, height=400
-    )
-
-st.markdown("---")
-
-# Text length analysis
-st.subheader("Text Length Analysis")
-col1, col2 = st.columns(2)
+# 4 Primary KPI Cards
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    fig, ax = plt.subplots(figsize=(8, 5))
-    train_df[TEXT_COL].str.len().hist(bins=50, ax=ax, color='steelblue', edgecolor='black', alpha=0.7)
-    ax.set_xlabel('Text Length (characters)')
-    ax.set_ylabel('Frequency')
-    ax.set_title('Text Length Distribution')
-    mean_len = train_df[TEXT_COL].str.len().mean()
-    ax.axvline(mean_len, color='red', linestyle='--', label=f'Mean: {mean_len:.0f}')
-    ax.legend()
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
+    st.markdown(
+        render_kpi_card(
+            title="Training Samples",
+            value=f"{len(train_df):,}",
+            subtext="76.5% of total corpus",
+            badge_text="Stratified 5-Fold",
+            badge_type="emerald",
+        ),
+        unsafe_allow_html=True,
+    )
 
 with col2:
-    fig, ax = plt.subplots(figsize=(8, 5))
-    train_df[TEXT_COL].str.split().str.len().hist(bins=30, ax=ax, color='coral', edgecolor='black', alpha=0.7)
-    ax.set_xlabel('Word Count')
-    ax.set_ylabel('Frequency')
-    ax.set_title('Word Count Distribution')
-    mean_wc = train_df[TEXT_COL].str.split().str.len().mean()
-    ax.axvline(mean_wc, color='red', linestyle='--', label=f'Mean: {mean_wc:.0f}')
-    ax.legend()
+    st.markdown(
+        render_kpi_card(
+            title="Test Samples",
+            value="3,080",
+            subtext="23.5% official holdout",
+            badge_text="Zero Leakage",
+            badge_type="blue",
+        ),
+        unsafe_allow_html=True,
+    )
+
+with col3:
+    st.markdown(
+        render_kpi_card(
+            title="Intent Classes",
+            value=f"{train_df[LABEL_COL].nunique()}",
+            subtext="~130 samples per intent",
+            badge_text="Balanced Test",
+            badge_type="gray",
+        ),
+        unsafe_allow_html=True,
+    )
+
+with col4:
+    st.markdown(
+        render_kpi_card(
+            title="Avg Text Length",
+            value=f"{char_lengths.mean():.0f} chars",
+            subtext=f"Median: {char_lengths.median():.0f} chars · {word_counts.mean():.1f} words",
+            badge_text="Clean NLP",
+            badge_type="emerald",
+        ),
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
+# Category Distribution Section
+st.subheader("Category Distribution (Training Set)")
+st.markdown(
+    "<span style='color: #64748b; font-size: 13px;'>Training split contains intentional natural imbalance (35 to 187 samples), while test set is perfectly balanced (40 samples per category).</span>",
+    unsafe_allow_html=True,
+)
+
+tab_chart, tab_table = st.tabs(["📊 Distribution Bar Chart", "📋 Data Table & Search"])
+
+with tab_chart:
+    fig, ax = plt.subplots(figsize=(12, 16))
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#ffffff')
+    
+    # Clean Stitch Navy to Cobalt gradient
+    palette = sns.color_palette("mako", len(vc))
+    vc.plot(kind='barh', ax=ax, color=palette)
+    
+    ax.set_xlabel('Number of Samples', fontsize=12, fontweight='bold', color='#0b1c30')
+    ax.set_title('BANKING77 Training Set Intent Frequency (77 Classes)', fontsize=14, fontweight='bold', color='#00236f', pad=15)
+    ax.invert_yaxis()
+    ax.grid(axis='x', linestyle='--', alpha=0.3, color='#94a3b8')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color('#cbd5e1')
+    ax.spines['bottom'].set_color('#cbd5e1')
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
 
-st.markdown("---")
+with tab_table:
+    search_q = st.text_input("Filter categories by name:", placeholder="e.g., card, transfer, fee, pin...")
+    cat_summary = pd.DataFrame({
+        'Category': vc.index,
+        'Train Count': vc.values,
+        'Percentage': (vc.values / len(train_df) * 100).round(2),
+        'Test Count': 40,
+    })
+    if search_q:
+        cat_summary = cat_summary[cat_summary['Category'].str.contains(search_q, case=False)]
+    st.dataframe(cat_summary, use_container_width=True, height=450, hide_index=True)
 
-# Class imbalance
-st.subheader("Class Imbalance")
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.hist(vc.values, bins=20, color='steelblue', edgecolor='black', alpha=0.7)
-ax.axvline(vc.mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {vc.mean():.0f}')
-ax.axvline(vc.min(), color='green', linestyle='--', linewidth=2, label=f'Min: {vc.min()} ({vc.idxmin()})')
-ax.axvline(vc.max(), color='purple', linestyle='--', linewidth=2, label=f'Max: {vc.max()} ({vc.idxmax()})')
-ax.set_xlabel('Samples per Category')
-ax.set_ylabel('Number of Categories')
-ax.set_title('Class Imbalance Distribution')
-ax.legend()
-plt.tight_layout()
-st.pyplot(fig)
-plt.close(fig)
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
-st.metric("Imbalance Ratio (max/min)", f"{vc.max()/vc.min():.2f}x")
+# Text Length Analysis Section
+st.subheader("Text Length & Word Frequency Diagnostics")
+c_len1, c_len2 = st.columns(2)
 
-st.markdown("---")
+with c_len1:
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#ffffff')
+    char_lengths.hist(bins=40, ax=ax, color='#1e3a8a', edgecolor='#ffffff', alpha=0.85)
+    ax.axvline(char_lengths.mean(), color='#e11d48', linestyle='--', linewidth=2, label=f'Mean: {char_lengths.mean():.1f}')
+    ax.axvline(char_lengths.median(), color='#d97706', linestyle=':', linewidth=2, label=f'Median: {char_lengths.median():.0f}')
+    ax.set_xlabel('Character Length', fontsize=10, fontweight='bold', color='#0b1c30')
+    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color='#0b1c30')
+    ax.set_title('Character Length Distribution', fontsize=12, fontweight='bold', color='#00236f')
+    ax.grid(axis='y', linestyle='--', alpha=0.3, color='#94a3b8')
+    ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
 
-# Sample browser
-st.subheader("Sample Text Browser")
-selected_cat = st.selectbox("Select a category:", sorted(train_df[LABEL_COL].unique()))
-samples = train_df[train_df[LABEL_COL] == selected_cat][TEXT_COL].head(10)
-for i, text in enumerate(samples, 1):
-    st.markdown(f"**{i}.** {text}")
+with c_len2:
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#ffffff')
+    word_counts.hist(bins=30, ax=ax, color='#2563eb', edgecolor='#ffffff', alpha=0.85)
+    ax.axvline(word_counts.mean(), color='#e11d48', linestyle='--', linewidth=2, label=f'Mean: {word_counts.mean():.1f}')
+    ax.axvline(word_counts.median(), color='#d97706', linestyle=':', linewidth=2, label=f'Median: {word_counts.median():.0f}')
+    ax.set_xlabel('Word Count', fontsize=10, fontweight='bold', color='#0b1c30')
+    ax.set_ylabel('Frequency', fontsize=10, fontweight='bold', color='#0b1c30')
+    ax.set_title('Word Count Distribution', fontsize=12, fontweight='bold', color='#00236f')
+    ax.grid(axis='y', linestyle='--', alpha=0.3, color='#94a3b8')
+    ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
+# Sample Browser Section
+st.subheader("Intent Utterance Browser")
+st.markdown("<span style='color: #64748b; font-size: 13px;'>Inspect authentic training examples across any of the 77 banking categories.</span>", unsafe_allow_html=True)
+
+selected_cat = st.selectbox("Select Intent Category:", sorted(train_df[LABEL_COL].unique()))
+cat_samples = train_df[train_df[LABEL_COL] == selected_cat][TEXT_COL].tolist()
+
+st.markdown(f"**Found {len(cat_samples)} training utterances for `{selected_cat}`:**")
+cols_samp = st.columns(min(3, len(cat_samples[:6])))
+for idx, text in enumerate(cat_samples[:6]):
+    col = cols_samp[idx % len(cols_samp)]
+    with col:
+        st.markdown(
+            f"""
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-size: 13px; color: #0b1c30; line-height: 1.4;">"{text}"</div>
+                <div style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #2563eb; font-weight: 600;">Sample #{idx+1}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
