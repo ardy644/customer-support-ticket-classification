@@ -215,6 +215,13 @@ with right_col:
                     </div>
                     <span class="stitch-badge badge-gray">Page 5</span>
                 </div>
+                <div style="padding: 10px 14px; background: var(--stitch-inset); border-radius: 8px; border: 1px solid var(--stitch-border); display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--stitch-heading);">Image Ticket Classifier</div>
+                        <div style="font-size: 11px; color: var(--stitch-muted);">Screenshot OCR extraction & automated routing fallback</div>
+                    </div>
+                    <span class="stitch-badge badge-emerald">Page 6 (OCR)</span>
+                </div>
             </div>
         </div>
         """,

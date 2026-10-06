@@ -401,7 +401,7 @@ def render_sidebar_footer():
             </div>
             <div class="stitch-sidebar-detail">Dataset: <strong>BANKING77</strong></div>
             <div class="stitch-sidebar-muted">10,003 train · 3,080 test (77 intents)</div>
-            <div class="stitch-sidebar-version"><span>System Version</span><strong>v1.1-ui</strong></div>
+            <div class="stitch-sidebar-version"><span>System Version</span><strong>v2.0-image-ocr</strong></div>
         </div>
         """,
         unsafe_allow_html=True,

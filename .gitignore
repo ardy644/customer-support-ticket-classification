@@ -42,3 +42,4 @@ outputs/**/*.txt
 # Caches
 .cache/
 .gemini/
+stitch-design/

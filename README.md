@@ -9,15 +9,15 @@ Built strictly with **traditional Machine Learning and NLP** (CPU-first, zero de
 ## Key Highlights
 
 - **Traditional ML Only**: TF-IDF + Multinomial Naive Bayes, Logistic Regression, and Linear SVM. No CNNs, BERT, Transformers, LLMs, or external APIs.
-- **CPU-First & Resource Efficient**: Entire training pipeline executes in **< 40 seconds** on standard CPU. Peak model storage is **< 8 MB**.
+- **CPU-First & Resource Efficient**: Inference uses sparse TF-IDF and CPU-based linear models. The checked-in training pipeline can regenerate the model artifacts; its total runtime depends on the machine and tuning settings. The current local model artifacts occupy about 7.9 MiB.
 - **Zero Data Leakage**: Vectorizer is fitted strictly on the official training split (`10,003` samples). Evaluation is computed strictly on the official held-out test split (`3,080` samples).
 - **High Accuracy**:
   - **Logistic Regression**: **87.18% Accuracy**, **87.18% Macro-F1**, **98.18% Top-5 Accuracy**
   - **Linear SVM**: **86.82% Accuracy**, **86.76% Macro-F1**, **97.11% Top-5 Accuracy**
   - **Multinomial Naive Bayes**: **83.96% Accuracy**, **83.87% Macro-F1**, **97.01% Top-5 Accuracy**
 - **Intelligent Routing**: 77 fine-grained intents mapped to 10 operational departments with priority scoring (`URGENT`, `HIGH`, `MEDIUM`, `NORMAL`). Overall departmental routing accuracy exceeds **94%**.
-- **Interactive Streamlit Dashboard**: 5-page application featuring EDA, model comparison, real-time single & batch prediction, error analysis, and routing analytics.
-- **Automated Test Suite**: 34 unit, integration, and anti-leakage tests via `pytest`.
+- **Interactive Streamlit Dashboard**: 6-page application featuring an overview, EDA, model comparison, real-time single & batch prediction, error analysis, and routing analytics.
+- **Automated Test Suite**: 35 unit, integration, and anti-leakage tests via `pytest`.
 
 ---
 
@@ -154,8 +154,8 @@ DS lab project/
 │       ├── 3_Predict.py            # Live single & batch ticket router
 │       ├── 4_Error_Analysis.py     # Misclassification & heatmap explorer
 │       └── 5_Routing.py            # Departmental workload & accuracy analysis
-├── models/                         # Serialized joblib models (7.9 MB total)
-├── outputs/                        # Plots, JSON metrics, error analysis
+├── models/                         # Generated joblib models (not tracked by Git)
+├── outputs/                        # Generated plots, JSON metrics, error analysis (not tracked by Git)
 │   └── eda/                        # Distribution & imbalance visualizations
 ├── tests/
 │   ├── test_preprocessing.py       # Preprocessing integrity tests
@@ -174,32 +174,45 @@ DS lab project/
 ## Installation & Quickstart
 
 ### 1. Prerequisites
-- Python 3.10+ (Tested up to Python 3.14)
+- Python 3.10+ (Python 3.11 or 3.12 is recommended for easiest package installation on Windows)
 - Git
 
 ### 2. Setup Environment
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd "DS lab project"
+git clone https://github.com/ardy644/customer-support-ticket-classification.git
+cd customer-support-ticket-classification
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Run Automated Tests
+### 3. Prepare NLTK data
+The preprocessing module uses NLTK's English stopwords, tokenizer data, and WordNet corpora. Install them once before running tests, training, or prediction:
+```bash
+python -c "import nltk; [nltk.download(name) for name in ('stopwords', 'punkt', 'punkt_tab', 'wordnet', 'omw-1.4')]"
+```
+
+### 4. Run Automated Tests
 ```bash
 python -m pytest tests/ -v
 ```
-All 34 tests execute and pass in under 10 seconds.
+The current suite contains 35 tests. Runtime varies with the machine.
 
-### 4. Execute End-to-End Pipeline
+### 5. Prepare model and result artifacts
+Model files and generated evaluation outputs are intentionally excluded from Git by `.gitignore`. A fresh clone therefore does not include the trained model or saved result files.
+
+For a self-contained demo without retraining, copy the `models/` and `outputs/` directories from a prepared project folder into the clone. The current local copies are about 7.9 MiB and 1.0 MiB, respectively.
+
+Alternatively, regenerate them from the included dataset by running the pipeline below. This performs training and evaluation; it is not needed when the prepared artifact folders are copied.
+
+### 6. Execute End-to-End Pipeline (only if artifacts were not copied)
 ```bash
 python scripts/run_pipeline.py
 ```
 This runs data loading, EDA generation, text preprocessing, TF-IDF feature extraction, 5-fold cross-validation, hyperparameter tuning, test set evaluation, error analysis, and ticket routing.
 
-### 5. Launch the Streamlit Dashboard
+### 7. Launch the Streamlit Dashboard
 ```bash
 streamlit run app/streamlit_app.py
 ```
@@ -227,9 +240,60 @@ Access the application at `http://localhost:8501`.
 |---|---|---|
 | **Data Integrity** | 10,003 train / 3,080 test, 77 categories, 0 text overlap | PASSED |
 | **Leakage Isolation** | Vectorizer fit exclusively on train; test vocab isolated | PASSED |
-| **Unit & Integration** | 34 automated tests across preprocessing, models, routing, leakage, and app | PASSED |
-| **Resource Budget** | Models: 7.9 MB (budget < 50 MB); Training: 38s (budget < 20 min) | PASSED |
-| **Git Baseline** | Clean history with milestone tags: `v0.1-baseline`, `v0.9-pipeline-complete`, `v1.0-release` | PASSED |
+| **Unit & Integration** | 35 automated tests across preprocessing, models, routing, leakage, and app | PASSED |
+| **Resource Budget** | Current local model artifacts: about 7.9 MiB; CPU-first sparse TF-IDF and linear models | PASSED |
+| **Git Baseline** | Stable UI and theme release tags: `v1.1-ui`, `v1.1.1` | PASSED |
+
+---
+
+## Image-OCR Fallback Version (v2.0-image-ocr)
+
+### 1. Purpose of the Fallback Version
+In enterprise and financial customer service operations, users frequently submit **screenshots** of mobile app errors, wire transfer receipts, digital statements, and transaction disputes rather than manually typing raw text. 
+
+The **Image-OCR Fallback Version** (`feature/image-ocr-fallback`) introduces multimodal image input capabilities while completely preserving the validated text classification system.
+
+> [!NOTE]
+> **Important Technical Clarification:** This is **not** direct computer vision classification. The machine learning models (Logistic Regression, Linear SVM) operate strictly on natural language representations. The architecture is:
+> 
+> $$\text{Image} \xrightarrow{\text{OCR}} \text{Extracted Text} \xrightarrow{\text{NLP}} \text{TF-IDF} \xrightarrow{\text{ML}} \text{Intent Classification} \xrightarrow{\text{Rules}} \text{Support Department}$$
+
+### 2. Comparative Processing Architectures
+
+- **Standard Text Version (Page 3 - Live Ticket Classifier):**
+  $$\text{User Text Input} \longrightarrow \text{NLP Preprocessing} \longrightarrow \text{TF-IDF} \longrightarrow \text{Linear Classifier} \longrightarrow \text{Routing \& Priority}$$
+- **Image Fallback Version (Page 6 - Image Ticket Classifier):**
+  $$\text{Ticket Image / Screenshot} \longrightarrow \text{Image Preprocessing} \longrightarrow \text{Tesseract OCR} \longrightarrow \text{Extracted Text} \longrightarrow \text{NLP Preprocessing} \longrightarrow \text{TF-IDF} \longrightarrow \text{Linear Classifier} \longrightarrow \text{Routing \& Priority}$$
+
+### 3. OCR Technology Stack
+- **Python OCR Library:** `pytesseract` (Python wrapper for Tesseract)
+- **Image Preprocessing:** `Pillow` (PIL) for RGB normalization, grayscale conversion, resolution upscaling (for images $< 800\text{px}$ width), contrast enhancement ($\times 1.8$), and sharpness tuning.
+- **Underlying OCR Engine:** Google Tesseract OCR engine (CPU-first, local execution, zero cloud APIs, zero external network requests).
+
+### 4. Tesseract OCR Installation on Windows
+The Python package `pytesseract` requires the local Tesseract OCR engine binary on the operating system:
+
+```powershell
+# Option A: Windows Package Manager (recommended)
+winget install UB-Mannheim.TesseractOCR
+
+# Option B: Manual Installer
+# Download and install the 64-bit installer from:
+# https://github.com/UB-Mannheim/tesseract/wiki
+```
+
+The system automatically detects Tesseract in standard locations:
+- `C:\Program Files\Tesseract-OCR\tesseract.exe`
+- `C:\Program Files (x86)\Tesseract-OCR\tesseract.exe`
+- `%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe`
+- Or via custom environment variable: `$env:TESSERACT_CMD = "C:\Path\To\tesseract.exe"`
+
+*(Note: The page includes built-in interactive demo screenshot scenarios so the entire workflow can be demonstrated even before installing the local engine binary.)*
+
+### 5. Supported Formats & Capabilities
+- **File Formats:** `.png`, `.jpg`, `.jpeg`
+- **Telemetry Separation:** Displays **OCR Confidence** (word-level character recognition certainty) strictly separate from **Model Confidence** (intent posterior probability).
+- **Graceful Error Handling:** Explicit validation for missing images, corrupt files, unreadable/empty text, missing OCR engines, and classification failures.
 
 ---
 

@@ -48,3 +48,10 @@ def test_routing_page():
     at = AppTest.from_file(str(project_root / "app" / "pages" / "5_Routing.py"))
     at.run(timeout=30)
     assert len(at.exception) == 0
+
+
+def test_image_ticket_classifier_page():
+    """Verify Image Ticket Classifier page renders without error."""
+    at = AppTest.from_file(str(project_root / "app" / "pages" / "6_Image_Ticket_Classifier.py"))
+    at.run(timeout=30)
+    assert len(at.exception) == 0
