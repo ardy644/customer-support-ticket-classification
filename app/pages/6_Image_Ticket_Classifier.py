@@ -6,16 +6,14 @@ Matches Stitch Design System specifications.
 """
 import sys
 import time
-import io
 from pathlib import Path
-from typing import Optional
 
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 import streamlit as st
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import joblib
 
 from app.components.stitch_theme import (
@@ -144,7 +142,7 @@ if not tess_available:
             <div style="font-size: 12px; color: #78350f; line-height: 1.5;">
                 The <code>pytesseract</code> Python package is ready, but the system <strong>Tesseract OCR</strong> binary was not detected on Windows PATH or default directories.
                 <br>• To enable live optical scanning from your custom uploaded images, install Tesseract OCR: <code>winget install UB-Mannheim.TesseractOCR</code>
-                <br>• <strong>Interactive Fallback Mode is active:</strong> You can use built-in sample scenarios below to test the complete Image → OCR → NLP Classification → Routing workflow seamlessly.
+                <br>• Built-in sample scenarios can demonstrate classification and routing from their known sample text. They do not run OCR and do not report OCR confidence.
             </div>
         </div>
         """,
@@ -192,6 +190,7 @@ with input_col:
                 st.session_state.ocr_active_image = synth_img
                 # Clear previous downstream states
                 st.session_state.ocr_extracted_text = ""
+                st.session_state.ocr_extracted_textbox = ""
                 st.session_state.ocr_confidence_score = None
                 st.session_state.ocr_classification_result = None
                 st.session_state.ocr_error_message = None
@@ -206,14 +205,43 @@ with input_col:
         help="Supported formats: PNG, JPG, JPEG. Max file size: 10MB.",
     )
 
-    if uploaded_file is not None:
+    uploaded_file_id = getattr(uploaded_file, "file_id", None) if uploaded_file is not None else None
+    if uploaded_file is not None and uploaded_file_id != st.session_state.get("ocr_uploaded_file_id"):
+        st.session_state.ocr_uploaded_file_id = uploaded_file_id
         try:
-            pil_img = Image.open(uploaded_file)
-            st.session_state.ocr_active_image = pil_img.copy()
-            # Clear preset text so OCR runs on uploaded file
-            st.session_state.preset_sample_text = None
+            pil_img, image_meta = load_and_validate_image(uploaded_file)
+            if pil_img is None:
+                st.session_state.ocr_active_image = None
+                st.session_state.preset_sample_text = None
+                st.session_state.ocr_extracted_text = ""
+                st.session_state.ocr_extracted_textbox = ""
+                st.session_state.ocr_confidence_score = None
+                st.session_state.ocr_classification_result = None
+                st.error(image_meta.get("error_message", "Unsupported or invalid image file."))
+            else:
+                st.session_state.ocr_active_image = pil_img.copy()
+                st.session_state.ocr_extracted_text = ""
+                st.session_state.ocr_extracted_textbox = ""
+                st.session_state.ocr_confidence_score = None
+                st.session_state.ocr_classification_result = None
+                # Clear preset text so OCR runs on uploaded file
+                st.session_state.preset_sample_text = None
         except Exception as e:
+            st.session_state.ocr_active_image = None
+            st.session_state.preset_sample_text = None
+            st.session_state.ocr_extracted_text = ""
+            st.session_state.ocr_extracted_textbox = ""
+            st.session_state.ocr_confidence_score = None
+            st.session_state.ocr_classification_result = None
             st.error(f"Unable to read image: {str(e)}")
+    elif uploaded_file is None and st.session_state.get("ocr_uploaded_file_id") is not None:
+        st.session_state.ocr_uploaded_file_id = None
+        if not getattr(st.session_state, "preset_sample_text", None):
+            st.session_state.ocr_active_image = None
+            st.session_state.ocr_extracted_text = ""
+            st.session_state.ocr_extracted_textbox = ""
+            st.session_state.ocr_confidence_score = None
+            st.session_state.ocr_classification_result = None
 
     # Preprocessing options
     enable_enhancement = st.checkbox(
@@ -240,10 +268,12 @@ with input_col:
                     ocr_res = extract_text_from_image(active_img, preprocess=enable_enhancement)
                     if ocr_res["success"]:
                         st.session_state.ocr_extracted_text = ocr_res["cleaned_text"]
+                        st.session_state.ocr_extracted_textbox = ocr_res["cleaned_text"]
                         st.session_state.ocr_confidence_score = ocr_res.get("ocr_confidence")
                         st.session_state.ocr_error_message = None
                     else:
                         st.session_state.ocr_extracted_text = ""
+                        st.session_state.ocr_extracted_textbox = ""
                         st.session_state.ocr_confidence_score = None
                         st.session_state.ocr_error_message = ocr_res.get("error_message", "OCR processing failed.")
                 else:
@@ -251,10 +281,12 @@ with input_col:
                     preset_text = getattr(st.session_state, "preset_sample_text", None)
                     if preset_text:
                         st.session_state.ocr_extracted_text = preset_text
-                        st.session_state.ocr_confidence_score = 0.9450
+                        st.session_state.ocr_extracted_textbox = preset_text
+                        st.session_state.ocr_confidence_score = None
                         st.session_state.ocr_error_message = None
                     else:
                         st.session_state.ocr_extracted_text = ""
+                        st.session_state.ocr_extracted_textbox = ""
                         st.session_state.ocr_confidence_score = None
                         st.session_state.ocr_error_message = (
                             "Tesseract OCR executable was not found on this system. "
@@ -307,7 +339,14 @@ if st.session_state.ocr_error_message:
 text_col_l, text_col_r = st.columns([8, 4], gap="large")
 
 with text_col_l:
-    st.markdown("<span style='font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.06em;'>OCR Extracted Text (Output from OCR Engine)</span>", unsafe_allow_html=True)
+    if not tess_available and getattr(st.session_state, "preset_sample_text", None):
+        text_source_label = "Sample ticket text (known preset content; OCR not run)"
+    else:
+        text_source_label = "OCR Extracted Text (Output from OCR Engine)"
+    st.markdown(
+        f"<span style='font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.06em;'>{text_source_label}</span>",
+        unsafe_allow_html=True,
+    )
     
     editable_ocr_text = st.text_area(
         "Extracted Ticket Text:",

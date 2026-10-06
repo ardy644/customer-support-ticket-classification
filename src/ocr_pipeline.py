@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, Union
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance
 import pytesseract
 
 
@@ -161,6 +161,15 @@ def load_and_validate_image(image_input: Union[bytes, io.BytesIO, str, Path, Ima
                 "valid": False,
                 "error_code": "UNSUPPORTED_TYPE",
                 "error_message": f"Unsupported image input type: {type(image_input).__name__}",
+            }
+
+        # PIL images without their original file metadata are used for generated
+        # in-memory samples; upload formats are constrained by the UI.
+        if img_format not in {"PNG", "JPEG", "PIL"}:
+            return None, {
+                "valid": False,
+                "error_code": "UNSUPPORTED_FORMAT",
+                "error_message": "Unsupported image format. Please use a PNG or JPEG image.",
             }
 
         # Verify image integrity

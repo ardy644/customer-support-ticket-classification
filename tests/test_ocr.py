@@ -111,6 +111,12 @@ def test_unsupported_file_handling():
     assert img_empty is None
     assert meta_empty["error_code"] in ("CORRUPT_OR_UNSUPPORTED_IMAGE", "EMPTY_IMAGE_FILE")
 
+    bmp = io.BytesIO()
+    Image.new("RGB", (10, 10), "white").save(bmp, format="BMP")
+    img_bmp, meta_bmp = load_and_validate_image(bmp.getvalue())
+    assert img_bmp is None
+    assert meta_bmp["error_code"] == "UNSUPPORTED_FORMAT"
+
 
 # 6. OCR extraction with mocked Tesseract
 @patch("src.ocr_pipeline.is_tesseract_installed", return_value=True)

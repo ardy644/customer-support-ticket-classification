@@ -256,7 +256,7 @@ The **Image-OCR Fallback Version** (`feature/image-ocr-fallback`) introduces mul
 > [!NOTE]
 > **Important Technical Clarification:** This is **not** direct computer vision classification. The machine learning models (Logistic Regression, Linear SVM) operate strictly on natural language representations. The architecture is:
 > 
-> $$\text{Image} \xrightarrow{\text{OCR}} \text{Extracted Text} \xrightarrow{\text{NLP}} \text{TF-IDF} \xrightarrow{\text{ML}} \text{Intent Classification} \xrightarrow{\text{Rules}} \text{Support Department}$$
+> **Image → OCR → Text → NLP/ML classification**. Extracted text passes through the existing preprocessing, fitted TF-IDF vectorizer, text classifier, and routing rules.
 
 ### 2. Comparative Processing Architectures
 
@@ -288,12 +288,14 @@ The system automatically detects Tesseract in standard locations:
 - `%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe`
 - Or via custom environment variable: `$env:TESSERACT_CMD = "C:\Path\To\tesseract.exe"`
 
-*(Note: The page includes built-in interactive demo screenshot scenarios so the entire workflow can be demonstrated even before installing the local engine binary.)*
+Without the Tesseract executable, uploaded images cannot be OCR-processed. Built-in sample scenarios remain available to demonstrate routing from their known sample text; this sample mode does not perform OCR and does not show an OCR confidence score.
 
 ### 5. Supported Formats & Capabilities
 - **File Formats:** `.png`, `.jpg`, `.jpeg`
+- **Processing:** Pillow preprocessing and local `pytesseract`/Tesseract OCR; no cloud API, LLM, TensorFlow, or PyTorch is required.
 - **Telemetry Separation:** Displays **OCR Confidence** (word-level character recognition certainty) strictly separate from **Model Confidence** (intent posterior probability).
 - **Graceful Error Handling:** Explicit validation for missing images, corrupt files, unreadable/empty text, missing OCR engines, and classification failures.
+- **Limitations:** OCR quality depends on image clarity, language data, and Tesseract installation. OCR confidence measures text recognition and is not a measure of intent prediction quality.
 
 ---
 
