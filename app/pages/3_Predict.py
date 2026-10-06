@@ -258,10 +258,15 @@ with tab_batch:
     uploaded_file = st.file_uploader("Upload CSV Batch File", type=["csv"])
 
     if uploaded_file is not None:
-        batch_df = pd.read_csv(uploaded_file)
-        if 'text' not in batch_df.columns:
+        try:
+            batch_df = pd.read_csv(uploaded_file)
+        except pd.errors.EmptyDataError:
+            batch_df = None
+            st.error("Uploaded CSV is empty. Add a 'text' column with at least one ticket query.")
+
+        if batch_df is not None and 'text' not in batch_df.columns:
             st.error("Uploaded CSV must contain a 'text' column header.")
-        else:
+        elif batch_df is not None:
             # Keep missing and non-string CSV cells predictable for inference and export.
             batch_df['text'] = batch_df['text'].fillna('').astype(str)
             st.info(f"Loaded CSV batch containing **{len(batch_df):,}** ticket queries.")

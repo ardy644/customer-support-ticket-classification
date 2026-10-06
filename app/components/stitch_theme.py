@@ -194,6 +194,24 @@ section[data-testid="stSidebar"] .stMarkdown h3 { color: var(--stitch-heading) !
 div[data-testid="stDataFrame"], div[data-testid="stTable"] { border: 1px solid var(--stitch-border); border-radius: 8px; overflow: hidden; }
 div[data-testid="stDataFrame"] *, div[data-testid="stTable"] * { color-scheme: inherit; }
 [data-testid="stAlert"] { border-radius: 8px; }
+
+@media (max-width: 1100px) {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .stitch-kpi-card) > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 16px) !important;
+        min-width: min(100%, 220px);
+    }
+}
+
+@media (max-width: 850px) {
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        flex: 1 1 100% !important;
+        min-width: 100%;
+    }
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .stitch-kpi-card) > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 16px) !important;
+        min-width: min(100%, 220px);
+    }
+}
 </style>
 """
 
