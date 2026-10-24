@@ -73,7 +73,7 @@ def plot_text_length_by_category(train_df: pd.DataFrame, top_n: int = 20):
     
     fig, ax = plt.subplots(figsize=(14, 8))
     sns.boxplot(data=subset, y=LABEL_COL, x='text_length', ax=ax,
-                order=top_cats, palette='viridis')
+                order=top_cats, palette='viridis', hue=LABEL_COL, legend=False)
     ax.set_xlabel('Text Length (characters)')
     ax.set_ylabel('Category')
     ax.set_title(f'Text Length by Category (Top {top_n})')

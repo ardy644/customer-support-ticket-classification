@@ -170,10 +170,10 @@ class TicketRouter:
     def _get_confidence(self, features) -> float:
         """Get prediction confidence score."""
         if hasattr(self.model, 'predict_proba'):
-            proba = self.model.predict_proba(features)
+            proba = self.model.predict_proba(features)[0]
             return float(proba.max())
         elif hasattr(self.model, 'decision_function'):
-            scores = self.model.decision_function(features)
+            scores = self.model.decision_function(features)[0]
             # Normalize to 0-1 range using softmax-like approach
             exp_scores = np.exp(scores - scores.max())
             proba = exp_scores / exp_scores.sum()

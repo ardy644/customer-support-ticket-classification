@@ -21,7 +21,7 @@ PARAM_GRIDS = {
     'LinearSVC': {
         'C': [0.01, 0.1, 0.5, 1.0, 5.0],
         'loss': ['hinge', 'squared_hinge'],
-        'max_iter': [2000],
+        'max_iter': [10000],
     },
 }
 
